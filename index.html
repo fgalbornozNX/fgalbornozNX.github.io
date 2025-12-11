@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor</title>
+  <style>
+    body {
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .audio-player-btns-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      background: #333;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #555;
+    }
+
+    svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="audio-player-btns-wrapper">
+    <button id="playBtn" title="Play">
+      <!-- Ícono de Play -->
+      <svg id="playIcon" stroke="currentColor" fill="currentColor" viewBox="0 0 448 512">
+        <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Audio -->
+  <audio id="audio" src="https://cdn.commoninja.com/asset/c927bad0-4d99-439b-a9b4-164e52bb8fa4.mp3"></audio>
+
+  <script>
+    const audio = document.getElementById("audio");
+    const playBtn = document.getElementById("playBtn");
+    const playIcon = document.getElementById("playIcon");
+
+    const pauseSVG = `
+      <path d="M144 479H80c-26.5 0-48-21.5-48-48V79c0-26.5 21.5-48 48-48h64c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zm224-48V79c0-26.5-21.5-48-48-48h-64c-26.5 0-48 21.5-48 48v352c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48z"></path>
+    `;
+
+    const playSVG = `
+      <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
+    `;
+
+    playBtn.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play();
+        playIcon.innerHTML = pauseSVG;
+      } else {
+        audio.pause();
+        playIcon.innerHTML = playSVG;
+      }
+    });
+  </script>
+
+</body>
+</html>
