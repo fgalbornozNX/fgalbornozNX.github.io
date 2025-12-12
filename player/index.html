@@ -3,27 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <title>Reproductor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
-      background: transparent !important;
       margin: 0;
-      padding: 10px;
+      padding: 0;
       font-family: sans-serif;
       overflow: hidden;
-      height: auto;
+      width: 100%;
+    }
+
+    body {
+      background-image: url('nx214jk.png');
+      background-size: contain;
+      background-position: top center;
+      background-repeat: no-repeat;
+      position: relative;
+      min-height: 100vh;
     }
 
     .audio-player-btns-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      position: absolute;
+      top: 10px;
+      right: 10px;
     }
 
     button {
       background: #333;
       border: none;
-      padding: 15px;
-      border-radius: 10px;
+      padding: 18px;
+      border-radius: 12px;
       cursor: pointer;
       display: flex;
       justify-content: center;
@@ -35,10 +44,142 @@
       background: #555;
     }
 
-    svg {
-      width: 40px;
-      height: 40px;
-      fill: white;
+    .music-note {
+      font-size: 45px;
+      color: white;
+      user-select: none;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+      }
+      25% {
+        transform: translateY(-8px) rotate(5deg);
+      }
+      50% {
+        transform: translateY(0) rotate(-5deg);
+      }
+      75% {
+        transform: translateY(-4px) rotate(2deg);
+      }
+    }
+
+    .music-note.playing {
+      animation: bounce 0.8s ease-in-out infinite;
+    }
+
+    .button-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .spark {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      top: 50%;
+      left: 50%;
+      margin: -4px 0 0 -4px;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    @keyframes spark1 {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(35px, -35px) scale(0);
+      }
+    }
+
+    @keyframes spark2 {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-35px, -35px) scale(0);
+      }
+    }
+
+    @keyframes spark3 {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(35px, 35px) scale(0);
+      }
+    }
+
+    @keyframes spark4 {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-35px, 35px) scale(0);
+      }
+    }
+
+    .spark.active {
+      animation-duration: 1s;
+      animation-timing-function: ease-out;
+      animation-iteration-count: infinite;
+    }
+
+    .spark:nth-child(1) { 
+      background: #FFD700; 
+      animation-name: spark1;
+    }
+    .spark:nth-child(2) { 
+      background: #FF6B6B; 
+      animation-name: spark2;
+      animation-delay: 0.2s;
+    }
+    .spark:nth-child(3) { 
+      background: #4ECDC4; 
+      animation-name: spark3;
+      animation-delay: 0.4s;
+    }
+    .spark:nth-child(4) { 
+      background: #FFA500; 
+      animation-name: spark4;
+      animation-delay: 0.6s;
+    }
+
+    @media (max-width: 768px) {
+      button {
+        padding: 16px;
+      }
+      
+      .music-note {
+        font-size: 40px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .audio-player-btns-wrapper {
+        top: 8px;
+        right: 8px;
+      }
+
+      button {
+        padding: 14px;
+      }
+      
+      .music-note {
+        font-size: 36px;
+      }
     }
   </style>
 </head>
@@ -46,37 +187,62 @@
 <body>
 
   <div class="audio-player-btns-wrapper">
-    <button id="playBtn" title="Play">
-      <!-- Ícono de Play -->
-      <svg id="playIcon" stroke="currentColor" fill="currentColor" viewBox="0 0 448 512">
-        <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
-      </svg>
-    </button>
+    <div class="button-container">
+      <div class="spark"></div>
+      <div class="spark"></div>
+      <div class="spark"></div>
+      <div class="spark"></div>
+      <button id="playBtn" title="Play">
+        <div id="musicNote" class="music-note">♫</div>
+      </button>
+    </div>
   </div>
 
   <!-- Audio -->
-  <audio id="audio" src="afk14xan.mp3" loop></audio>
+  <audio id="audio" src="afk14xan.mp3" loop autoplay></audio>
 
   <script>
     const audio = document.getElementById("audio");
     const playBtn = document.getElementById("playBtn");
-    const playIcon = document.getElementById("playIcon");
+    const musicNote = document.getElementById("musicNote");
+    const sparks = document.querySelectorAll(".spark");
+    let sparkInterval;
 
-    const pauseSVG = `
-      <path d="M144 479H80c-26.5 0-48-21.5-48-48V79c0-26.5 21.5-48 48-48h64c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zm224-48V79c0-26.5-21.5-48-48-48h-64c-26.5 0-48 21.5-48 48v352c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48z"></path>
-    `;
+    function startSparks() {
+      sparkInterval = setInterval(() => {
+        sparks.forEach((spark, index) => {
+          setTimeout(() => {
+            spark.classList.remove("active");
+            void spark.offsetWidth; // Trigger reflow
+            spark.classList.add("active");
+          }, index * 150);
+        });
+      }, 1000);
+    }
 
-    const playSVG = `
-      <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
-    `;
+    function stopSparks() {
+      clearInterval(sparkInterval);
+      sparks.forEach(spark => spark.classList.remove("active"));
+    }
+
+    // Iniciar automáticamente
+    audio.play().then(() => {
+      musicNote.classList.add("playing");
+      startSparks();
+    }).catch(err => {
+      // Si el navegador bloquea el autoplay, esperar click del usuario
+      console.log("Autoplay bloqueado, esperando interacción del usuario");
+    });
 
     playBtn.addEventListener("click", () => {
       if (audio.paused) {
         audio.play();
-        playIcon.innerHTML = pauseSVG;
+        musicNote.classList.add("playing");
+        startSparks();
       } else {
         audio.pause();
-        playIcon.innerHTML = playSVG;
+        musicNote.classList.remove("playing");
+        stopSparks();
       }
     });
   </script>
